@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw 
+    schema: RAW
+    database: IOT_PM
+    tables:
+      - name: sensor_readings
+      - name: machines
+      - name: maintenance_logs    

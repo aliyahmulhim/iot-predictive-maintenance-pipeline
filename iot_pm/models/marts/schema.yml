@@ -1,0 +1,48 @@
+version: 2
+
+models:
+
+  - name: dim_machines
+    description: "Dimension table containing unique machine details"
+    columns:
+      - name: machine_key
+        description: "Primary key for the machine dimension"
+        tests:
+          - unique
+          - not_null
+
+      - name: machine_id  
+        description: "Natural key of the machine"
+        tests:
+          - not_null
+          - unique:
+              config:
+                where: "is_current = true"
+
+  - name: fct_sensor_readings
+    description: "Fact table containing IoT sensor event-level readings"
+    columns:
+      - name: sensor_reading_id
+        description: "Primary key for the sensor reading event"
+        tests:
+          - unique
+          - not_null
+
+      - name: machine_key
+        description: "Foreign key linking to dim_machines"
+        tests:    
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_machines')
+                field: machine_key
+
+      - name: temperature_c
+        description: "Cleaned temperature reading where nulls and 999.0 outliers already handled"
+        tests: 
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 40
+                max_value: 120
+                description: "Cleaned temperature must be within realistic operational limits"

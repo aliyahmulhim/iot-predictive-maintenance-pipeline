@@ -1,0 +1,40 @@
+version: 2
+
+models: 
+  - name: stg_sensor_readings
+    description: "Cleaned telemetry data from Silver layer"
+    columns:
+      - name: machine_id
+        tests: 
+          - not_null
+
+      - name: event_ts 
+        tests: 
+          - not_null
+
+      - name: temperature_c
+        description: "Raw temperature reading. May contain nulls (0.5%) and 999.0 outliers (0.2%)"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 40 
+                max_value: 120
+                where: "temperature_c is not null and temperature_c != 999.0"     
+                description: "Reject physically impossible values and allow known outliers to pass"
+
+      - name: vibration_mm_s
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 20
+
+      - name: pressure_kpa
+        tests:   
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 700
+                max_value: 1000 
+              

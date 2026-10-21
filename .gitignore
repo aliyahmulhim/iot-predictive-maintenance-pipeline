@@ -1,0 +1,10 @@
+# Secrets
+.env
+**/.env
+
+# dbt generated files and dependencies
+**/target/
+**/dbt_packages/
+
+# Logs
+**/logs/
