@@ -15,9 +15,38 @@ models:
         description: "Natural key of the machine"
         tests:
           - not_null
-          - unique:
-              config:
-                where: "is_current = true"
+          - unique
+  - name: dim_date
+    description: "Date dimension covering 2025-2027"
+    columns:
+      - name: date_key
+        description: Primary key (one row per calender day)
+        tests: 
+          - unique
+          - not_null
+      - name: year
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2025
+                max_value: 2027
+      - name: month
+        tests: 
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12
+      - name: quarter
+        tests: 
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 4
+      - name: is_weekend
+        tests:
+          - not_null                              
+
 
   - name: fct_sensor_readings
     description: "Fact table containing IoT sensor event-level readings"
@@ -46,3 +75,61 @@ models:
                 min_value: 40
                 max_value: 120
                 description: "Cleaned temperature must be within realistic operational limits"
+
+  - name: fct_sensor_readings_hourly
+    description: "Hourly aggregated sensor readings per machine"
+    columns:
+      - name: machine_key
+        tests: 
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_machines')
+                field: machine_key
+      - name: hour_ts
+        tests:
+          - not_null
+      - name: reading_count
+        tests: 
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12
+                description: "12 readings per hour (5-min interval)"    
+      - name: avg_temperature_c
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 40
+                max_value: 120                           
+  - name: fct_machine_health_daily
+    description: "Daily machine health with z-scores and risk level"
+    columns:
+      - name: machine_key
+        tests: 
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('dim_machines')
+                field: machine_key
+      - name: date_key
+        tests:
+          - not_null
+      - name: health_risk_level
+        tests: 
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: vib_zscore
+        description: "Z-score of vibration. Values > 20 indicate severe degradation (rare, but valid)"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -10
+                max_value: 100
+                severity: warn
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['machine_key', 'date_key']                                        
