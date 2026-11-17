@@ -34,3 +34,4 @@ with hourly AS (
     FROM {{ ref('fct_sensor_readings') }}    
     GROUP BY 1, 2
 )
+SELECT * FROM hourly

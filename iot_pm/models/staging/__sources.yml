@@ -7,4 +7,4 @@ sources:
     tables:
       - name: sensor_readings
       - name: machines
-      - name: maintenance_logs    
+      - name: maintenance_logs   

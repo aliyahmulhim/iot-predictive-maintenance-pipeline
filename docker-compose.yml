@@ -1,0 +1,18 @@
+services: 
+  airflow-standalone:
+    image: apache/airflow:2.10.2
+    container_name: iot_pm_airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./simulator:/opt/airflow/simulator
+      - ./ingestion:/opt/airflow/ingestion
+      - ./iot_pm:/opt/airflow/dbt 
+    ports:
+      - "8080:8080"
+    command: standalone       

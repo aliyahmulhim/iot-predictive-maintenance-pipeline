@@ -132,4 +132,18 @@ models:
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
-            combination_of_columns: ['machine_key', 'date_key']                                        
+            combination_of_columns: ['machine_key', 'date_key'] 
+  - name: fct_maintenance_events
+    description: "Transaction fact table recording preventive and failure maintenance events"
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
+      - name: machine_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_machines')
+                field: machine_key                                                 
